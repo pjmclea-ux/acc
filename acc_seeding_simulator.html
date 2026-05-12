@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 ACC Baseball Championship Seeding Simulator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --orange: #F56600;
+    --purple: #522D80;
+    --gold: #F0A500;
+    --dark: #0d0d0d;
+    --mid: #1a1a1a;
+    --card: #212121;
+    --border: #333;
+    --text: #e8e8e8;
+    --muted: #888;
+    --green: #3dba6b;
+    --red: #e84040;
+    --blue: #4a90d9;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, var(--purple) 0%, #3a1f5f 50%, #1a0d30 100%);
+    border-bottom: 3px solid var(--orange);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-logo {
+    width: 48px; height: 48px;
+    background: var(--orange);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .header-title { flex: 1; }
+  .header-title h1 {
+    font-size: 26px; font-weight: 800; letter-spacing: 1px;
+    color: #fff;
+    text-transform: uppercase;
+  }
+  .header-title p { color: #ccc; font-size: 13px; letter-spacing: 0.5px; }
+  .nav-tabs {
+    display: flex; gap: 4px;
+  }
+  .nav-tab {
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    color: #ccc;
+    cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 600; letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .nav-tab.active, .nav-tab:hover {
+    background: var(--orange);
+    border-color: var(--orange);
+    color: #fff;
+  }
+
+  /* MAIN LAYOUT */
+  .main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .card-header {
+    background: linear-gradient(90deg, var(--purple), #3a1f5f);
+    padding: 12px 16px;
+    font-size: 14px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: #fff;
+    border-bottom: 2px solid var(--orange);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-body { padding: 16px; }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .gap-16 { gap: 16px; }
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th {
+    background: #2a2a2a;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td { padding: 7px 10px; border-bottom: 1px solid #2a2a2a; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #2a2a2a; }
+
+  /* SEED BADGE */
+  .seed-badge {
+    display: inline-block;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    line-height: 28px;
+    text-align: center;
+    font-weight: 700; font-size: 13px;
+  }
+  .seed-1 { background: #FFD700; color: #000; }
+  .seed-2 { background: #C0C0C0; color: #000; }
+  .seed-3 { background: #CD7F32; color: #fff; }
+  .seed-4 { background: #4a90d9; color: #fff; }
+  .seed-5, .seed-6, .seed-7, .seed-8 { background: #2d6a2d; color: #fff; }
+  .seed-9, .seed-10, .seed-11, .seed-12, .seed-13, .seed-14, .seed-15, .seed-16 { background: #4a2020; color: #fff; }
+
+  /* PROBABILITIES */
+  .prob-bar-wrap {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .prob-bar-bg {
+    flex: 1; height: 8px; background: #333; border-radius: 4px; overflow: hidden;
+  }
+  .prob-bar-fill {
+    height: 100%; border-radius: 4px; transition: width 0.3s;
+  }
+  .prob-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; min-width: 44px; text-align: right; }
+
+  /* BYE TIERS */
+  .bye-double { border-left: 3px solid var(--gold); }
+  .bye-single { border-left: 3px solid var(--green); }
+  .bye-none { border-left: 3px solid var(--red); }
+
+  /* SERIES SELECTOR */
+  .series-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .series-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .series-header {
+    background: #2a2a2a;
+    padding: 10px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+  }
+  .series-body { padding: 12px; }
+  .series-matchup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .series-team { flex: 1; text-align: center; }
+  .series-at { color: var(--muted); font-size: 11px; }
+  .series-outcomes {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .outcome-btn {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: #2a2a2a;
+    color: var(--text);
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .outcome-btn:hover { border-color: var(--orange); color: var(--orange); }
+  .outcome-btn.selected { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .outcome-btn.tbd { border-style: dashed; color: var(--muted); }
+
+  /* STANDINGS */
+  .standings-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 16px;
+  }
+
+  /* CLEMSON FOCUS */
+  .clemson-header {
+    background: linear-gradient(135deg, var(--orange), #c44e00);
+    padding: 16px;
+    text-align: center;
+    border-bottom: 2px solid var(--purple);
+  }
+  .clemson-header h2 { font-size: 28px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
+  .clemson-header p { font-size: 14px; color: rgba(255,255,255,0.8); margin-top: 4px; }
+
+  .scenario-matrix {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .matrix-cell {
+    padding: 6px;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .matrix-cell.seed-12 { background: #1a4a2a; color: #5dca8a; }
+  .matrix-cell.seed-13 { background: #1a3a3a; color: #5daaaa; }
+  .matrix-cell.seed-14 { background: #1a2a4a; color: #5d8aca; }
+  .matrix-cell.seed-15 { background: #3a2a1a; color: #ca9a5d; }
+  .matrix-cell.seed-16 { background: #4a1a1a; color: #ca5d5d; }
+
+  /* BRACKET */
+  .bracket-container {
+    overflow-x: auto;
+    padding: 16px 0;
+  }
+  .bracket {
+    display: flex;
+    gap: 0;
+    min-width: 900px;
+    font-size: 13px;
+  }
+  .bracket-round {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .bracket-round-header {
+    text-align: center;
+    padding: 8px;
+    background: #2a2a2a;
+    border-bottom: 2px solid var(--orange);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 8px;
+  }
+  .bracket-game {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 4px 4px;
+  }
+  .bracket-team {
+    padding: 7px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .bracket-team:last-child { border-bottom: none; }
+  .bracket-team.winner { background: rgba(245,102,0,0.15); }
+  .bracket-team.tbd { color: var(--muted); font-style: italic; }
+  .bracket-seed-sm {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 24px;
+  }
+  .bracket-bye-label {
+    text-align: center;
+    padding: 16px;
+    color: var(--muted);
+    font-size: 12px;
+    font-style: italic;
+  }
+
+  /* MISC */
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .tag-double-bye { background: rgba(240,165,0,0.2); color: var(--gold); border: 1px solid var(--gold); }
+  .tag-single-bye { background: rgba(61,186,107,0.2); color: var(--green); border: 1px solid var(--green); }
+  .tag-no-bye { background: rgba(232,64,64,0.2); color: var(--red); border: 1px solid var(--red); }
+
+  .flex { display: flex; }
+  .flex-col { flex-direction: column; }
+  .gap-4 { gap: 4px; }
+  .gap-8 { gap: 8px; }
+  .gap-12 { gap: 12px; }
+
+  .record { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+  .pct { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  .highlight-orange { color: var(--orange); }
+  .highlight-green { color: var(--green); }
+  .highlight-red { color: var(--red); }
+
+  .mt-16 { margin-top: 16px; }
+  .mb-16 { margin-bottom: 16px; }
+
+  .info-box {
+    background: rgba(82,45,128,0.2);
+    border: 1px solid rgba(82,45,128,0.5);
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #bbb;
+  }
+  .info-box strong { color: var(--orange); }
+
+  .live-seed-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: rgba(245,102,0,0.1);
+    border: 1px solid rgba(245,102,0,0.3);
+    border-radius: 6px;
+    margin-bottom: 12px;
+  }
+  .live-seed-num {
+    font-size: 40px;
+    font-weight: 800;
+    color: var(--orange);
+    line-height: 1;
+    font-family: 'Barlow Condensed';
+  }
+  .live-seed-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .live-seed-record { font-family: 'JetBrains Mono', monospace; font-size: 16px; }
+
+  .btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .btn-orange { background: var(--orange); color: #fff; }
+  .btn-orange:hover { background: #d45800; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--orange); color: var(--orange); }
+
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  .team-abbr { font-family: 'JetBrains Mono', monospace; }
+
+  /* Locked indicator */
+  .lock-icon { font-size: 12px; }
+
+  /* Scenario result table */
+  #scenario-result-table td { vertical-align: middle; }
+
+  /* BRACKET spacing helpers */
+  .bracket-spacer { flex: 1; }
+  .bracket-round-games { display: flex; flex-direction: column; justify-content: space-around; height: 100%; }
+
+  /* Prob mini bars in standings */
+  .mini-prob-wrap { display: flex; gap: 2px; align-items: center; flex-wrap: wrap; }
+  .mini-prob-seg {
+    height: 6px; border-radius: 2px;
+  }
+
+  /* tooltip */
+  .tooltip-wrap { position: relative; display: inline-block; }
+  .tooltip-wrap .tooltip {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 200;
+    pointer-events: none;
+    margin-bottom: 4px;
+  }
+  .tooltip-wrap:hover .tooltip { display: block; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">ACC</div>
+  <div class="header-title">
+    <h1>2026 ACC Baseball Championship</h1>
+    <p>Seeding Simulator · Final Weekend · 65,536 Scenarios Computed</p>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('overview')">Overview</button>
+    <button class="nav-tab" onclick="showSection('simulator')">Simulator</button>
+    <button class="nav-tab" onclick="showSection('clemson')">🐾 Clemson</button>
+    <button class="nav-tab" onclick="showSection('bracket')">Bracket</button>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ======= OVERVIEW ======= -->
+<div class="section active" id="sec-overview">
+  <div class="mb-16 info-box">
+    <strong>Going into the final weekend</strong> — 8 series of 3 games each remain (24 games total). Seeds 1–4 receive a <strong style="color:var(--gold)">double bye</strong>, 5–8 a <strong style="color:var(--green)">single bye</strong>, and 9–16 play in <strong style="color:var(--red)">Tuesday's first round</strong>. All tie percentages assume 50/50 outcomes. Tiebreakers applied in full per ACC rules (H2H → common opponents → H2H run diff → overall run diff).
+  </div>
+
+  <div class="card">
+    <div class="card-header">📊 Full Standings — Seed Range & Probability Breakdown</div>
+    <div style="overflow-x:auto">
+    <table id="overview-table">
+      <thead>
+        <tr>
+          <th>Cur Seed</th>
+          <th>Team</th>
+          <th>Record</th>
+          <th>Pct</th>
+          <th>Best</th>
+          <th>Worst</th>
+          <th>Bye Status Range</th>
+          <th style="min-width:260px">Seed Probability (1–16)</th>
+        </tr>
+      </thead>
+      <tbody id="overview-tbody"></tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="grid-2 mt-16 gap-16">
+    <div class="card">
+      <div class="card-header">🗓️ Final Weekend Series</div>
+      <div class="card-body">
+        <table>
+          <thead>
+            <tr><th>Away</th><th>At</th><th>Home</th><th>Note</th></tr>
+          </thead>
+          <tbody id="series-list-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">⚡ Key Storylines</div>
+      <div class="card-body" id="storylines"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ======= SIMULATOR ======= -->
+<div class="section" id="sec-simulator">
+  <div class="grid-2 gap-16">
+    <div>
+      <div class="card mb-16">
+        <div class="card-header">⚙️ Set Series Results</div>
+        <div class="card-body">
+          <div class="series-grid" id="series-selector"></div>
+          <div class="divider"></div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn btn-orange" onclick="runScenario()">▶ Compute Seedings</button>
+            <button class="btn btn-ghost" onclick="resetAll()">↺ Reset All</button>
+            <span id="games-set-label" style="font-size:13px;color:var(--muted);margin-left:8px;"></span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">ℹ️ Remaining Scenarios</div>
+        <div class="card-body">
+          <div id="remaining-count" style="font-family:'JetBrains Mono';font-size:24px;color:var(--orange);margin-bottom:8px;"></div>
+          <div id="remaining-note" style="font-size:13px;color:var(--muted);line-height:1.5;"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-header">📋 Projected Seedings</div>
+        <div class="card-body" style="padding:0">
+          <table id="scenario-result-table">
+            <thead>
+              <tr>
+                <th>Seed</th>
+                <th>Team</th>
+                <th>Final Record</th>
+                <th>Pct</th>
+                <th>Bye</th>
+                <th>Tiebreak Used</th>
+              </tr>
+            </thead>
+            <tbody id="scenario-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======= CLEMSON ======= -->
+<div class="section" id="sec-clemson">
+  <div class="card mb-16">
+    <div class="clemson-header">
+      <h2>🐾 Clemson Tigers — Seeding Outlook</h2>
+      <p>Current: 9-18 · Seed 15 (pre-weekend) · Playing at Virginia Tech (3 games)</p>
+    </div>
+    <div class="card-body">
+      <div class="grid-2 gap-16">
+        <div>
+          <div class="live-seed-display" id="clem-live-seed">
+            <div>
+              <div class="live-seed-label">Current Projected Seed</div>
+              <div class="live-seed-num" id="clem-seed-num">—</div>
+            </div>
+            <div style="margin-left:auto;text-align:right">
+              <div class="live-seed-label">Final Record</div>
+              <div class="live-seed-record" id="clem-record">Set results →</div>
+            </div>
+          </div>
+          <div class="info-box">
+            <strong>Clemson's path:</strong> They play Virginia Tech in a 3-game series (Th/Fr/Sa). Clemson is currently 9-18. They cannot reach seeds 1–11 regardless of outcomes because:
+            <br><br>
+            · Georgia Tech (22+ wins) and NC (20+ wins) are out of reach.<br>
+            · FSU/BC (17-10) win at least 17 — Clemson maxes at 12.<br>
+            · Stanford/Cal play each other — one <em>must</em> reach 13W, blocking Clemson from 12.<br>
+            · Virginia, NC State, VTech (13-14) — at least one reaches 14W, above Clemson max.<br>
+            <br>
+            <strong>Clemson's realistic range: Seeds 12–16.</strong>
+          </div>
+          <div class="mt-16">
+            <div style="font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Overall seed probabilities (all 65,536 scenarios)</div>
+            <div id="clem-overall-probs"></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Clemson seed by VTech series result</div>
+          <div id="clem-vtec-table"></div>
+          <div class="divider"></div>
+          <div style="font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Set scenario to see Clemson's exact seed</div>
+          <div class="info-box" id="clem-scenario-result">
+            Use the <strong>Simulator</strong> tab to set specific results, or use the series selector below.
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--orange);margin-bottom:12px;">Clemson @ Virginia Tech — Pick a Series Result</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;" id="clem-series-btns"></div>
+      <div class="mt-16" id="clem-all-scenarios-table"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ======= BRACKET ======= -->
+<div class="section" id="sec-bracket">
+  <div class="mb-16">
+    <div class="grid-2 gap-16">
+      <div class="info-box">
+        <strong>ACC Championship Bracket Format:</strong><br>
+        Seeds 1–4 → <span style="color:var(--gold)">Double Bye</span> (enter Thursday)<br>
+        Seeds 5–8 → <span style="color:var(--green)">Single Bye</span> (enter Wednesday)<br>
+        Seeds 9–16 → <span style="color:var(--red)">No Bye</span> (play Tuesday)
+      </div>
+      <div class="info-box">
+        <strong>Bracket Schedule:</strong><br>
+        TUE: 9v16 · 12v13 · 15v10 · 11v14<br>
+        WED: 9/16v8 · 12/13v5 · 10/15v7 · 11/14v6<br>
+        THU: 1v[winner] 3pm · 4v[winner] 7pm<br>
+        FRI: 2v[winner] 3pm · 3v[winner] 7pm<br>
+        SAT: Semis 1pm & 5pm · SUN: Championship noon
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">🏆 Projected Bracket — Based on Current Simulator Selections</div>
+    <div class="card-body" style="padding:8px">
+      <div class="bracket-container">
+        <div id="bracket-display"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card mt-16">
+    <div class="card-header">📅 Full Tournament Schedule with Current Projections</div>
+    <div class="card-body" style="padding:0">
+      <table id="schedule-table">
+        <thead><tr><th>Day</th><th>Time</th><th>Matchup</th><th>Notes</th></tr></thead>
+        <tbody id="schedule-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const ACC_TEAMS = ['Georgia Tech','North Carolina','Florida State','Boston College','Miami','Wake Forest','Virginia','NC State','Virginia Tech','Stanford','Notre Dame','Louisville','Pitt','California','Clemson','Duke'];
+
+const BASE_RECORDS = {"Georgia Tech": {"w": 22, "l": 5}, "North Carolina": {"w": 20, "l": 7}, "Florida State": {"w": 17, "l": 10}, "Boston College": {"w": 17, "l": 10}, "Miami": {"w": 15, "l": 12}, "Wake Forest": {"w": 14, "l": 13}, "Virginia": {"w": 13, "l": 14}, "NC State": {"w": 13, "l": 14}, "Virginia Tech": {"w": 13, "l": 14}, "Stanford": {"w": 12, "l": 15}, "Notre Dame": {"w": 11, "l": 16}, "Louisville": {"w": 11, "l": 16}, "Pitt": {"w": 10, "l": 17}, "California": {"w": 10, "l": 17}, "Clemson": {"w": 9, "l": 18}, "Duke": {"w": 9, "l": 18}};
+
+const H2H_WINS = {"Georgia Tech": {"Georgia Tech": 0, "North Carolina": 1, "Florida State": 3, "Boston College": 0, "Miami": 0, "Wake Forest": 3, "Virginia": 0, "NC State": 3, "Virginia Tech": 2, "Stanford": 0, "Notre Dame": 0, "Louisville": 0, "Pitt": 2, "California": 3, "Clemson": 2, "Duke": 3}, "North Carolina": {"Georgia Tech": 2, "North Carolina": 0, "Florida State": 0, "Boston College": 2, "Miami": 0, "Wake Forest": 0, "Virginia": 1, "NC State": 0, "Virginia Tech": 0, "Stanford": 0, "Notre Dame": 3, "Louisville": 2, "Pitt": 3, "California": 3, "Clemson": 2, "Duke": 2}, "Florida State": {"Georgia Tech": 0, "North Carolina": 0, "Florida State": 0, "Boston College": 0, "Miami": 0, "Wake Forest": 3, "Virginia": 2, "NC State": 2, "Virginia Tech": 0, "Stanford": 0, "Notre Dame": 3, "Louisville": 0, "Pitt": 3, "California": 0, "Clemson": 2, "Duke": 2}, "Boston College": {"Georgia Tech": 0, "North Carolina": 1, "Florida State": 0, "Boston College": 0, "Miami": 2, "Wake Forest": 0, "Virginia": 2, "NC State": 1, "Virginia Tech": 2, "Stanford": 0, "Notre Dame": 2, "Louisville": 0, "Pitt": 0, "California": 3, "Clemson": 1, "Duke": 3}, "Miami": {"Georgia Tech": 0, "North Carolina": 0, "Florida State": 0, "Boston College": 1, "Miami": 0, "Wake Forest": 2, "Virginia": 0, "NC State": 1, "Virginia Tech": 2, "Stanford": 2, "Notre Dame": 0, "Louisville": 2, "Pitt": 0, "California": 2, "Clemson": 2, "Duke": 1}, "Wake Forest": {"Georgia Tech": 0, "North Carolina": 0, "Florida State": 0, "Boston College": 0, "Miami": 1, "Wake Forest": 0, "Virginia": 1, "NC State": 2, "Virginia Tech": 0, "Stanford": 3, "Notre Dame": 0, "Louisville": 3, "Pitt": 2, "California": 2, "Clemson": 0, "Duke": 0}, "Virginia": {"Georgia Tech": 0, "North Carolina": 2, "Florida State": 1, "Boston College": 1, "Miami": 0, "Wake Forest": 2, "Virginia": 0, "NC State": 0, "Virginia Tech": 2, "Stanford": 0, "Notre Dame": 2, "Louisville": 0, "Pitt": 0, "California": 1, "Clemson": 2, "Duke": 0}, "NC State": {"Georgia Tech": 0, "North Carolina": 0, "Florida State": 1, "Boston College": 2, "Miami": 2, "Wake Forest": 1, "Virginia": 0, "NC State": 0, "Virginia Tech": 1, "Stanford": 1, "Notre Dame": 3, "Louisville": 0, "Pitt": 0, "California": 0, "Clemson": 0, "Duke": 2}, "Virginia Tech": {"Georgia Tech": 1, "North Carolina": 0, "Florida State": 0, "Boston College": 1, "Miami": 1, "Wake Forest": 0, "Virginia": 1, "NC State": 2, "Virginia Tech": 0, "Stanford": 1, "Notre Dame": 0, "Louisville": 0, "Pitt": 2, "California": 2, "Clemson": 0, "Duke": 2}, "Stanford": {"Georgia Tech": 0, "North Carolina": 0, "Florida State": 3, "Boston College": 0, "Miami": 1, "Wake Forest": 0, "Virginia": 0, "NC State": 2, "Virginia Tech": 2, "Stanford": 0, "Notre Dame": 0, "Louisville": 2, "Pitt": 1, "California": 0, "Clemson": 1, "Duke": 0}, "Notre Dame": {"Georgia Tech": 0, "North Carolina": 0, "Florida State": 0, "Boston College": 1, "Miami": 0, "Wake Forest": 0, "Virginia": 1, "NC State": 0, "Virginia Tech": 0, "Stanford": 3, "Notre Dame": 0, "Louisville": 1, "Pitt": 0, "California": 0, "Clemson": 3, "Duke": 2}, "Louisville": {"Georgia Tech": 0, "North Carolina": 1, "Florida State": 0, "Boston College": 0, "Miami": 1, "Wake Forest": 0, "Virginia": 0, "NC State": 0, "Virginia Tech": 0, "Stanford": 1, "Notre Dame": 2, "Louisville": 0, "Pitt": 1, "California": 1, "Clemson": 3, "Duke": 1}, "Pitt": {"Georgia Tech": 1, "North Carolina": 0, "Florida State": 0, "Boston College": 0, "Miami": 0, "Wake Forest": 1, "Virginia": 3, "NC State": 0, "Virginia Tech": 1, "Stanford": 2, "Notre Dame": 0, "Louisville": 2, "Pitt": 0, "California": 0, "Clemson": 0, "Duke": 0}, "California": {"Georgia Tech": 0, "North Carolina": 0, "Florida State": 0, "Boston College": 0, "Miami": 1, "Wake Forest": 1, "Virginia": 2, "NC State": 0, "Virginia Tech": 1, "Stanford": 0, "Notre Dame": 0, "Louisville": 2, "Pitt": 3, "California": 0, "Clemson": 0, "Duke": 0}, "Clemson": {"Georgia Tech": 1, "North Carolina": 1, "Florida State": 1, "Boston College": 2, "Miami": 1, "Wake Forest": 0, "Virginia": 1, "NC State": 0, "Virginia Tech": 0, "Stanford": 2, "Notre Dame": 0, "Louisville": 0, "Pitt": 0, "California": 0, "Clemson": 0, "Duke": 0}, "Duke": {"Georgia Tech": 0, "North Carolina": 1, "Florida State": 1, "Boston College": 0, "Miami": 2, "Wake Forest": 0, "Virginia": 0, "NC State": 1, "Virginia Tech": 1, "Stanford": 0, "Notre Dame": 1, "Louisville": 2, "Pitt": 0, "California": 0, "Clemson": 0, "Duke": 0}};
+
+const H2H_RD = {"Georgia Tech": {"Georgia Tech": 0, "North Carolina": -10, "Florida State": 20, "Boston College": 0, "Miami": 0, "Wake Forest": 5, "Virginia": 0, "NC State": 14, "Virginia Tech": 21, "Stanford": 0, "Notre Dame": 0, "Louisville": 0, "Pitt": 5, "California": 26, "Clemson": 10, "Duke": 27}, "North Carolina": {"Georgia Tech": 10, "North Carolina": 0, "Florida State": 0, "Boston College": -1, "Miami": 0, "Wake Forest": 0, "Virginia": -16, "NC State": 0, "Virginia Tech": 0, "Stanford": 0, "Notre Dame": 12, "Louisville": 9, "Pitt": 17, "California": 19, "Clemson": 5, "Duke": 13}, "Florida State": {"Georgia Tech": -20, "North Carolina": 0, "Florida State": 0, "Boston College": 0, "Miami": 0, "Wake Forest": 18, "Virginia": 8, "NC State": 14, "Virginia Tech": 0, "Stanford": -5, "Notre Dame": 15, "Louisville": 0, "Pitt": 14, "California": 0, "Clemson": 6, "Duke": -4}, "Boston College": {"Georgia Tech": 0, "North Carolina": 1, "Florida State": 0, "Boston College": 0, "Miami": 3, "Wake Forest": 0, "Virginia": 17, "NC State": -1, "Virginia Tech": 4, "Stanford": 0, "Notre Dame": 6, "Louisville": 0, "Pitt": 0, "California": 5, "Clemson": -7, "Duke": 20}, "Miami": {"Georgia Tech": 0, "North Carolina": 0, "Florida State": 0, "Boston College": -3, "Miami": 0, "Wake Forest": 8, "Virginia": 0, "NC State": -9, "Virginia Tech": 17, "Stanford": -4, "Notre Dame": 0, "Louisville": 0, "Pitt": 0, "California": -3, "Clemson": 6, "Duke": -5}, "Wake Forest": {"Georgia Tech": -5, "North Carolina": 0, "Florida State": -18, "Boston College": 0, "Miami": -8, "Wake Forest": 0, "Virginia": -5, "NC State": 31, "Virginia Tech": 0, "Stanford": 10, "Notre Dame": 0, "Louisville": 4, "Pitt": 19, "California": 5, "Clemson": 0, "Duke": 0}, "Virginia": {"Georgia Tech": 0, "North Carolina": 16, "Florida State": -8, "Boston College": -17, "Miami": 0, "Wake Forest": 5, "Virginia": 0, "NC State": 0, "Virginia Tech": 7, "Stanford": 0, "Notre Dame": 17, "Louisville": 0, "Pitt": -17, "California": -3, "Clemson": -1, "Duke": 0}, "NC State": {"Georgia Tech": -14, "North Carolina": 0, "Florida State": -14, "Boston College": 1, "Miami": 9, "Wake Forest": -31, "Virginia": 0, "NC State": 0, "Virginia Tech": 2, "Stanford": 0, "Notre Dame": 9, "Louisville": 0, "Pitt": 0, "California": 0, "Clemson": 0, "Duke": 18}, "Virginia Tech": {"Georgia Tech": -21, "North Carolina": 0, "Florida State": 0, "Boston College": -4, "Miami": -17, "Wake Forest": 0, "Virginia": -7, "NC State": -2, "Virginia Tech": 0, "Stanford": 3, "Notre Dame": 0, "Louisville": 0, "Pitt": 5, "California": 7, "Clemson": 0, "Duke": 5}, "Stanford": {"Georgia Tech": 0, "North Carolina": 0, "Florida State": 5, "Boston College": 0, "Miami": 4, "Wake Forest": -10, "Virginia": 0, "NC State": 0, "Virginia Tech": -3, "Stanford": 0, "Notre Dame": -12, "Louisville": 2, "Pitt": -4, "California": 0, "Clemson": -12, "Duke": 0}, "Notre Dame": {"Georgia Tech": 0, "North Carolina": -12, "Florida State": -15, "Boston College": -6, "Miami": 0, "Wake Forest": 0, "Virginia": -17, "NC State": -9, "Virginia Tech": 0, "Stanford": 12, "Notre Dame": 0, "Louisville": -7, "Pitt": 0, "California": 0, "Clemson": 10, "Duke": 7}, "Louisville": {"Georgia Tech": 0, "North Carolina": -9, "Florida State": 0, "Boston College": 0, "Miami": 0, "Wake Forest": -4, "Virginia": 0, "NC State": 0, "Virginia Tech": 0, "Stanford": -2, "Notre Dame": 7, "Louisville": 0, "Pitt": -4, "California": -1, "Clemson": 10, "Duke": 0}, "Pitt": {"Georgia Tech": -5, "North Carolina": -17, "Florida State": -14, "Boston College": 0, "Miami": 0, "Wake Forest": -19, "Virginia": 17, "NC State": 0, "Virginia Tech": -5, "Stanford": 4, "Notre Dame": 0, "Louisville": 4, "Pitt": 0, "California": -30, "Clemson": 0, "Duke": 0}, "California": {"Georgia Tech": -26, "North Carolina": -19, "Florida State": 0, "Boston College": -5, "Miami": 3, "Wake Forest": -5, "Virginia": 3, "NC State": 0, "Virginia Tech": -7, "Stanford": 0, "Notre Dame": 0, "Louisville": 1, "Pitt": 30, "California": 0, "Clemson": 0, "Duke": 0}, "Clemson": {"Georgia Tech": -10, "North Carolina": -5, "Florida State": -6, "Boston College": 7, "Miami": -6, "Wake Forest": 0, "Virginia": 1, "NC State": 0, "Virginia Tech": 0, "Stanford": 12, "Notre Dame": -10, "Louisville": -10, "Pitt": 0, "California": 0, "Clemson": 0, "Duke": 0}, "Duke": {"Georgia Tech": -27, "North Carolina": -13, "Florida State": 4, "Boston College": -20, "Miami": 5, "Wake Forest": 0, "Virginia": 0, "NC State": -18, "Virginia Tech": -5, "Stanford": 0, "Notre Dame": -7, "Louisville": 0, "Pitt": 0, "California": 0, "Clemson": 0, "Duke": 0}};
+
+const OVERALL_RD = {"Georgia Tech": 118, "North Carolina": 68, "Florida State": 46, "Boston College": 48, "Miami": 7, "Wake Forest": 33, "Virginia": -1, "NC State": -20, "Virginia Tech": -31, "Stanford": -30, "Notre Dame": -37, "Louisville": -3, "Pitt": -65, "California": -25, "Clemson": -27, "Duke": -81};
+
+const SEED_FREQ = {"Georgia Tech": {"1": 53248, "2": 12288}, "North Carolina": {"2": 53248, "1": 12288}, "Florida State": {"4": 25600, "5": 15360, "3": 24576}, "Boston College": {"5": 1280, "4": 27392, "3": 36864}, "Miami": {"3": 4096, "4": 12288, "5": 26056, "7": 7832, "6": 11664, "8": 3152, "9": 448}, "Wake Forest": {"6": 20112, "7": 15510, "8": 11719, "9": 6031, "5": 10336, "10": 1512, "11": 60, "4": 256}, "Virginia": {"7": 12640, "6": 12912, "5": 5472, "8": 10293, "9": 7135, "10": 4336, "11": 6796, "12": 5952}, "NC State": {"11": 5824, "10": 8240, "12": 3584, "9": 12768, "8": 11984, "7": 10256, "6": 8656, "5": 4224}, "Virginia Tech": {"10": 9140, "8": 12164, "9": 12800, "7": 12072, "6": 10704, "5": 2784, "11": 4336, "12": 1536}, "Stanford": {"8": 10347, "7": 6248, "9": 10150, "6": 1488, "10": 9621, "5": 24, "11": 9566, "12": 5632, "13": 6924, "14": 4320, "15": 1088, "16": 128}, "Notre Dame": {"9": 5860, "10": 11083, "11": 8282, "12": 10860, "14": 9816, "15": 4008, "13": 13040, "8": 1673, "7": 218, "16": 696}, "Louisville": {"13": 11288, "14": 7768, "12": 14592, "15": 4152, "11": 8064, "10": 6540, "9": 7464, "8": 4076, "16": 832, "7": 760}, "Pitt": {"15": 13592, "16": 7568, "14": 9344, "13": 5200, "12": 7584, "11": 14888, "10": 6016, "9": 1280, "8": 64}, "California": {"14": 10556, "15": 10300, "13": 11076, "16": 8448, "12": 6724, "11": 7720, "10": 9048, "9": 1600, "8": 64}, "Clemson": {"12": 3072, "13": 9792, "14": 13376, "15": 19840, "16": 19456}, "Duke": {"16": 28408, "13": 8216, "12": 6000, "15": 12556, "14": 10356}};
+
+const N_SCENARIOS = 65536;
+
+const REMAINING_SERIES = [
+  ['Wake Forest','Duke'],
+  ['Clemson','Virginia Tech'],
+  ['Georgia Tech','Boston College'],
+  ['Miami','Florida State'],
+  ['Notre Dame','Pitt'],
+  ['Virginia','Louisville'],
+  ['North Carolina','NC State'],
+  ['Stanford','California'],
+];
+
+// Outcomes: [away_wins, home_wins]
+const OUTCOMES = [[3,0],[2,1],[1,2],[0,3]];
+const OUTCOME_LABELS = ['Away 3-0 Sweep','Away 2-1','Home 2-1','Home 3-0 Sweep'];
+
+// ============================================================
+// STATE
+// ============================================================
+let selectedOutcomes = Array(8).fill(null); // null = TBD
+let currentSeedings = null;
+
+// ============================================================
+// TIEBREAKER ENGINE
+// ============================================================
+function pct(w, l) { return (w+l) > 0 ? w/(w+l) : 0; }
+
+function breakTwoWay(t1, t2, wins, losses, h2h, h2hrd, rd, order) {
+  const h1 = h2h[t1][t2], h2 = h2h[t2][t1];
+  const tot = h1+h2;
+  if (tot > 0) {
+    if (h1 > h2) return [t1,t2];
+    if (h2 > h1) return [t2,t1];
+  }
+  for (const opp of order) {
+    if (opp===t1||opp===t2) continue;
+    const w1=h2h[t1][opp], l1=h2h[opp][t1], tot1=w1+l1;
+    const w2=h2h[t2][opp], l2=h2h[opp][t2], tot2=w2+l2;
+    if (tot1>0&&tot2>0) {
+      const p1=w1/tot1, p2=w2/tot2;
+      if (Math.abs(p1-p2)>1e-9) return p1>p2?[t1,t2]:[t2,t1];
+    }
+  }
+  const rd1=h2hrd[t1][t2], rd2=h2hrd[t2][t1];
+  if (rd1!==rd2) return rd1>rd2?[t1,t2]:[t2,t1];
+  if (rd[t1]!==rd[t2]) return rd[t1]>rd[t2]?[t1,t2]:[t2,t1];
+  return [t1,t2].sort();
+}
+
+function resolveTies(tied, wins, losses, h2h, h2hrd, rd, order, tiebreakInfo) {
+  if (tied.length===1) return tied;
+  if (tied.length===2) {
+    const result = breakTwoWay(tied[0],tied[1],wins,losses,h2h,h2hrd,rd,order);
+    if (tiebreakInfo) {
+      tiebreakInfo[result[0]] = 'Tiebreak won';
+      tiebreakInfo[result[1]] = 'Tiebreak lost';
+    }
+    return result;
+  }
+  // 3+: H2H pct within group
+  const h2hPct = t => {
+    const w = tied.reduce((s,o)=>o!==t?s+h2h[t][o]:s,0);
+    const l = tied.reduce((s,o)=>o!==t?s+h2h[o][t]:s,0);
+    return (w+l)>0?w/(w+l):0;
+  };
+  const scored = [...tied].sort((a,b)=>h2hPct(b)-h2hPct(a));
+  // Group by pct
+  const subGroups = [];
+  let i=0;
+  while(i<scored.length){
+    let j=i+1;
+    const p0=h2hPct(scored[i]);
+    while(j<scored.length&&Math.abs(h2hPct(scored[j])-p0)<1e-9)j++;
+    subGroups.push(scored.slice(i,j));
+    i=j;
+  }
+  let result = [];
+  for (const sg of subGroups) {
+    if (sg.length===1) { result.push(...sg); continue; }
+    // Try common opponents
+    let broken=false;
+    for (const opp of order) {
+      if (sg.includes(opp)) continue;
+      const pcts = sg.map(t=>{
+        const w=h2h[t][opp],l=h2h[opp][t],tot=w+l;
+        return {t,p:tot>0?w/tot:0};
+      });
+      pcts.sort((a,b)=>b.p-a.p);
+      const vals = [...new Set(pcts.map(x=>x.p))];
+      if (vals.length>1){
+        broken=true;
+        for (const v of vals) {
+          const ssg=pcts.filter(x=>Math.abs(x.p-v)<1e-9).map(x=>x.t);
+          result.push(...resolveTies(ssg,wins,losses,h2h,h2hrd,rd,order,tiebreakInfo));
+        }
+        break;
+      }
+    }
+    if (!broken) {
+      result.push(...[...sg].sort((a,b)=>rd[b]-rd[a]));
+    }
+  }
+  return result;
+}
+
+function getSeedings(wins, losses, h2h, h2hrd, rd, tiebreakInfo) {
+  const teams = [...ACC_TEAMS];
+  teams.sort((a,b)=>{
+    const pa=pct(wins[a],losses[a]), pb=pct(wins[b],losses[b]);
+    if (Math.abs(pa-pb)>1e-9) return pb-pa;
+    return a.localeCompare(b);
+  });
+  const result = [];
+  let i=0;
+  while(i<teams.length){
+    const p0=pct(wins[teams[i]],losses[teams[i]]);
+    let j=i+1;
+    while(j<teams.length&&Math.abs(pct(wins[teams[j]],losses[teams[j]])-p0)<1e-9)j++;
+    const tied=teams.slice(i,j);
+    if (tied.length===1) { result.push(...tied); }
+    else {
+      const resolved=resolveTies(tied,wins,losses,h2h,h2hrd,rd,teams,tiebreakInfo);
+      result.push(...resolved);
+    }
+    i=j;
+  }
+  return result;
+}
+
+function computeScenario(outcomes) {
+  // outcomes: array of 8, each null or [aw, hw]
+  const wins = {}, losses = {}, h2h = {}, rd = {};
+  for (const t of ACC_TEAMS) {
+    wins[t] = BASE_RECORDS[t].w;
+    losses[t] = BASE_RECORDS[t].l;
+    h2h[t] = {...H2H_WINS[t]};
+    rd[t] = OVERALL_RD[t];
+  }
+  const h2hrd = {};
+  for (const t of ACC_TEAMS) h2hrd[t] = {...H2H_RD[t]};
+
+  for (let si=0; si<8; si++) {
+    if (outcomes[si]===null) continue;
+    const [away,home] = REMAINING_SERIES[si];
+    const [aw,hw] = outcomes[si];
+    wins[away]+=aw; wins[home]+=hw;
+    losses[away]+=hw; losses[home]+=aw;
+    h2h[away][home]+=aw; h2h[home][away]+=hw;
+  }
+
+  const tiebreakInfo = {};
+  const seedings = getSeedings(wins, losses, h2h, h2hrd, rd, tiebreakInfo);
+  return {seedings, wins, losses, tiebreakInfo};
+}
+
+// ============================================================
+// OVERVIEW
+// ============================================================
+function renderOverview() {
+  const tbody = document.getElementById('overview-tbody');
+  tbody.innerHTML = '';
+  
+  // Current seedings
+  const {seedings:curSeeds} = computeScenario(Array(8).fill(null));
+  
+  for (let i=0; i<ACC_TEAMS.length; i++) {
+    const team = curSeeds[i];
+    const curSeed = i+1;
+    const rec = BASE_RECORDS[team];
+    const seeds = SEED_FREQ[team];
+    const seedNums = Object.keys(seeds).map(Number).sort((a,b)=>a-b);
+    const minSeed = seedNums[0], maxSeed = seedNums[seedNums.length-1];
+    
+    // Bye status range
+    const byeMin = minSeed<=4?'Double Bye':minSeed<=8?'Single Bye':'No Bye';
+    const byeMax = maxSeed<=4?'Double Bye':maxSeed<=8?'Single Bye':'No Bye';
+    const byeRange = byeMin===byeMax?byeMin:`${byeMin} → ${byeMax}`;
+    const byeClass = minSeed<=4&&maxSeed<=4?'tag-double-bye':minSeed<=8&&maxSeed<=8?'tag-single-bye':minSeed>8&&maxSeed>8?'tag-no-bye':'';
+    
+    // Prob bars
+    let bars = '';
+    const colorMap = {
+      1:'#FFD700',2:'#C0C0C0',3:'#CD7F32',4:'#4a90d9',
+      5:'#2d7a3a',6:'#2d7a3a',7:'#2d7a3a',8:'#2d7a3a',
+      9:'#6a2020',10:'#6a2020',11:'#6a2020',12:'#6a2020',
+      13:'#6a2020',14:'#6a2020',15:'#6a2020',16:'#6a2020'
+    };
+    for (const s of seedNums) {
+      const p = seeds[s]/N_SCENARIOS;
+      const w = Math.round(p*200);
+      bars += `<div class="tooltip-wrap"><div class="mini-prob-seg" style="width:${w}px;background:${colorMap[s]||'#555'};"></div><div class="tooltip">Seed ${s}: ${(p*100).toFixed(1)}%</div></div>`;
+    }
+    
+    const tr = document.createElement('tr');
+    tr.className = curSeed<=4?'bye-double':curSeed<=8?'bye-single':'bye-none';
+    tr.innerHTML = `
+      <td><span class="seed-badge seed-${curSeed}">${curSeed}</span></td>
+      <td style="font-weight:600">${team}</td>
+      <td class="record">${rec.w}-${rec.l}</td>
+      <td class="pct">${(rec.w/(rec.w+rec.l)).toFixed(3)}</td>
+      <td><span class="seed-badge seed-${minSeed}">${minSeed}</span></td>
+      <td><span class="seed-badge seed-${maxSeed}">${maxSeed}</span></td>
+      <td><span class="tag ${byeClass}">${byeRange}</span></td>
+      <td>
+        <div class="flex gap-4 align-items-center" style="align-items:center;">
+          <div class="mini-prob-wrap">${bars}</div>
+          <div style="font-size:11px;color:var(--muted);margin-left:4px;">${minSeed}–${maxSeed}</div>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  // Series list
+  const seriesTbody = document.getElementById('series-list-tbody');
+  for (const [away,home] of REMAINING_SERIES) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${away}</td><td style="color:var(--muted)">@</td><td style="font-weight:600">${home}</td><td style="color:var(--muted);font-size:12px">Th/Fr/Sa</td>`;
+    seriesTbody.appendChild(tr);
+  }
+
+  // Storylines
+  document.getElementById('storylines').innerHTML = `
+    <div class="flex flex-col gap-8">
+      <div class="info-box"><strong>🏆 #1 Seed:</strong> Georgia Tech is heavy favorite (81%) — they win it outright if they take the series vs Boston College, or if NC drops any game. NC needs a sweep AND GT sweep to grab #1.</div>
+      <div class="info-box"><strong>🔑 Seeds 3–5 Battle:</strong> Florida State and Boston College (both 17-10) play <em>each other</em> — one will move up, one will drop. Miami (15-12) can leapfrog both by sweeping FSU while the loser of FSU/BC collapses.</div>
+      <div class="info-box"><strong>⚠️ Clemson's Ceiling:</strong> Clemson (9-18) is locked into seeds 12–16. Stanford and Cal play each other — whichever one wins ≥2 games will have 13+ wins, locking Clemson out of seed 12 in most cases. Best-case is a 12-21 finish with help.</div>
+      <div class="info-box"><strong>💥 Three-Way Chaos (5–12):</strong> Virginia, NC State, and Virginia Tech (all 13-14) go separate directions this weekend, leading to wild seeding churn in seeds 5–12.</div>
+    </div>
+  `;
+}
+
+// ============================================================
+// SERIES SELECTOR (Simulator)
+// ============================================================
+function renderSeriesSelector() {
+  const container = document.getElementById('series-selector');
+  container.innerHTML = '';
+  
+  for (let si=0; si<8; si++) {
+    const [away,home] = REMAINING_SERIES[si];
+    const div = document.createElement('div');
+    div.className = 'series-card';
+    div.innerHTML = `
+      <div class="series-header">Series ${si+1}</div>
+      <div class="series-body">
+        <div class="series-matchup">
+          <div class="series-team" style="font-size:12px">${away}</div>
+          <div class="series-at">@</div>
+          <div class="series-team" style="font-size:12px;font-weight:700">${home}</div>
+        </div>
+        <div class="series-outcomes" id="outcomes-${si}"></div>
+      </div>
+    `;
+    container.appendChild(div);
+    renderOutcomeBtns(si);
+  }
+}
+
+function renderOutcomeBtns(si) {
+  const [away,home] = REMAINING_SERIES[si];
+  const container = document.getElementById(`outcomes-${si}`);
+  container.innerHTML = '';
+  
+  const tbdBtn = document.createElement('div');
+  tbdBtn.className = `outcome-btn tbd${selectedOutcomes[si]===null?' selected':''}`;
+  tbdBtn.textContent = '— TBD (50/50) —';
+  tbdBtn.onclick = () => { selectedOutcomes[si]=null; renderOutcomeBtns(si); updateScenario(); };
+  container.appendChild(tbdBtn);
+  
+  const labels = [
+    `${away} Sweep (3-0)`,
+    `${away} wins 2-1`,
+    `${home} wins 2-1`,
+    `${home} Sweep (3-0)`,
+  ];
+  for (let oi=0; oi<4; oi++) {
+    const btn = document.createElement('div');
+    const isSelected = selectedOutcomes[si] !== null && 
+                       selectedOutcomes[si][0]===OUTCOMES[oi][0] && 
+                       selectedOutcomes[si][1]===OUTCOMES[oi][1];
+    btn.className = `outcome-btn${isSelected?' selected':''}`;
+    btn.textContent = labels[oi];
+    btn.onclick = () => { selectedOutcomes[si]=OUTCOMES[oi]; renderOutcomeBtns(si); updateScenario(); };
+    container.appendChild(btn);
+  }
+}
+
+// ============================================================
+// RUN SCENARIO
+// ============================================================
+function updateScenario() {
+  const locked = selectedOutcomes.filter(x=>x!==null).length;
+  const remaining = 4**(8-locked);
+  document.getElementById('games-set-label').textContent = `${locked}/8 series locked`;
+  document.getElementById('remaining-count').textContent = remaining.toLocaleString() + ' scenarios';
+  document.getElementById('remaining-note').textContent = 
+    locked===8 ? 'All series locked — exact seedings shown.' :
+    `${8-locked} series still TBD. Tiebreakers applied to locked results; TBD series use current H2H/RD data.`;
+  
+  runScenario();
+}
+
+function runScenario() {
+  const {seedings, wins, losses, tiebreakInfo} = computeScenario(selectedOutcomes);
+  currentSeedings = seedings;
+  
+  const tbody = document.getElementById('scenario-tbody');
+  tbody.innerHTML = '';
+  
+  for (let i=0; i<seedings.length; i++) {
+    const team = seedings[i];
+    const seed = i+1;
+    const w = wins[team], l = losses[team];
+    const bye = seed<=4?'<span class="tag tag-double-bye">Double Bye</span>':
+                seed<=8?'<span class="tag tag-single-bye">Single Bye</span>':
+                '<span class="tag tag-no-bye">No Bye</span>';
+    const tb = tiebreakInfo[team]||'';
+    const rowClass = team==='Clemson'?'style="background:rgba(245,102,0,0.08)"':'';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td ${rowClass}><span class="seed-badge seed-${seed}">${seed}</span></td>
+      <td ${rowClass} style="font-weight:600${team==='Clemson'?';color:var(--orange)':''}">${team}</td>
+      <td ${rowClass} class="record">${w}-${l}</td>
+      <td ${rowClass} class="pct">${(w/(w+l)).toFixed(3)}</td>
+      <td ${rowClass}>${bye}</td>
+      <td ${rowClass} style="font-size:12px;color:var(--muted)">${tb}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+  
+  updateClemsonSection(seedings, wins, losses);
+  updateBracket(seedings, wins);
+}
+
+function resetAll() {
+  selectedOutcomes = Array(8).fill(null);
+  renderSeriesSelector();
+  updateScenario();
+}
+
+// ============================================================
+// CLEMSON SECTION
+// ============================================================
+function renderClemsonSection() {
+  // Overall probs
+  const probContainer = document.getElementById('clem-overall-probs');
+  const clemSeeds = SEED_FREQ['Clemson'];
+  probContainer.innerHTML = '';
+  const colors = {12:'#2d8a4a',13:'#2d6a8a',14:'#2d4a8a',15:'#8a6a2d',16:'#8a2d2d'};
+  for (const s of [12,13,14,15,16]) {
+    const cnt = clemSeeds[s]||0;
+    const p = cnt/N_SCENARIOS;
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:6px;';
+    div.innerHTML = `
+      <span class="seed-badge seed-${s}" style="flex-shrink:0">${s}</span>
+      <div class="prob-bar-bg" style="flex:1">
+        <div class="prob-bar-fill" style="width:${p*100}%;background:${colors[s]}"></div>
+      </div>
+      <span class="prob-val" style="color:${colors[s]}">${(p*100).toFixed(1)}%</span>
+      <span style="font-family:'JetBrains Mono';font-size:11px;color:var(--muted)">${cnt.toLocaleString()}</span>
+    `;
+    probContainer.appendChild(div);
+  }
+  
+  // VTech series outcome table
+  const vtechDiv = document.getElementById('clem-vtec-table');
+  vtechDiv.innerHTML = `
+    <table>
+      <thead><tr><th>VTech Series Result</th><th>Clemson Final</th><th>Seed Range</th></tr></thead>
+      <tbody>
+        ${[
+          ['Clemson 3-0 Sweep', [3,0]],
+          ['Clemson 2-1', [2,1]],
+          ['Virginia Tech 2-1', [1,2]],
+          ['Virginia Tech 3-0 Sweep', [0,3]],
+        ].map(([label, [aw,hw]])=>{
+          const w = 9+aw, l = 18+hw;
+          return `<tr>
+            <td style="font-size:13px">${label}</td>
+            <td class="record">${w}-${l}</td>
+            <td style="font-size:12px;color:var(--muted)">Depends on others</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  `;
+  
+  // Clemson series buttons
+  const btnsDiv = document.getElementById('clem-series-btns');
+  btnsDiv.innerHTML = '';
+  const clem_si = 1; // index of Clemson series
+  const labels = ['Clemson Sweeps (3-0)','Clemson Wins 2-1','VTech Wins 2-1','VTech Sweeps (3-0)'];
+  for (let oi=0; oi<4; oi++) {
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-ghost';
+    btn.textContent = labels[oi];
+    btn.onclick = () => {
+      selectedOutcomes[clem_si] = OUTCOMES[oi];
+      // Sync to simulator
+      renderSeriesSelector();
+      updateScenario();
+      showSection('clemson');
+    };
+    btnsDiv.appendChild(btn);
+  }
+  
+  updateClemsonAllScenariosTable();
+}
+
+function updateClemsonSection(seedings, wins, losses) {
+  const cSeed = seedings.indexOf('Clemson')+1;
+  const cW = wins['Clemson'], cL = losses['Clemson'];
+  
+  document.getElementById('clem-seed-num').textContent = cSeed || '—';
+  document.getElementById('clem-record').textContent = cW+'-'+cL;
+  
+  const seedEl = document.getElementById('clem-seed-num');
+  const colors = {12:'#3dba6b',13:'#4a90d9',14:'#a090e9',15:'#F56600',16:'#e84040'};
+  seedEl.style.color = colors[cSeed]||'var(--orange)';
+  
+  const byeText = cSeed<=4?'Double Bye!':cSeed<=8?'Single Bye':cSeed<=8?'Single Bye':'No Bye — First Round';
+  const byeClass = cSeed<=4?'tag-double-bye':cSeed<=8?'tag-single-bye':'tag-no-bye';
+  
+  document.getElementById('clem-scenario-result').innerHTML = `
+    Clemson is projected to be seed <strong style="color:var(--orange);font-size:18px">${cSeed}</strong> 
+    (${cW}-${cL}) with the current scenario.
+    <br><br>
+    <span class="tag ${byeClass}">${byeText}</span>
+    ${cSeed>=9?'<br><br>Clemson would play Tuesday at 5pm or 9pm depending on exact seeding.':''}
+  `;
+}
+
+function updateClemsonAllScenariosTable() {
+  // Show all 4 Clemson outcomes across full opponent matrix
+  const div = document.getElementById('clem-all-scenarios-table');
+  div.innerHTML = `<div style="font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Clemson Seed Probability by VTech Series Result</div>`;
+  
+  const table = document.createElement('table');
+  table.innerHTML = `<thead><tr>
+    <th>VTech Result</th>
+    <th>CU Record</th>
+    ${[12,13,14,15,16].map(s=>`<th>Seed ${s}</th>`).join('')}
+  </tr></thead>`;
+  const tbody = document.createElement('tbody');
+  
+  const outcomes4 = [[3,0],[2,1],[1,2],[0,3]];
+  const outcomeLabels = ['CU Sweep 3-0','CU Wins 2-1','VTU Wins 2-1','VTU Sweep 3-0'];
+  
+  for (let oi=0; oi<4; oi++) {
+    const [aw,hw] = outcomes4[oi];
+    // Run partial sim: fix CU series, everything else TBD (50/50 average)
+    // We need to count from all 4^7=16384 other scenarios
+    const cW = 9+aw, cL = 18+hw;
+    
+    // Manually compute distribution
+    const seedCounts = {12:0,13:0,14:0,15:0,16:0};
+    const N = 4**7;
+    for (let idx=0; idx<N; idx++) {
+      let tmp = idx;
+      const outs = [];
+      for (let si2=0; si2<7; si2++) {
+        outs.push(OUTCOMES[tmp%4]);
+        tmp=Math.floor(tmp/4);
+      }
+      // Build full outcomes array (CU series is index 1)
+      const fullOuts = [...outs.slice(0,1), [aw,hw], ...outs.slice(1)];
+      const {seedings} = computeScenario(fullOuts);
+      const seed = seedings.indexOf('Clemson')+1;
+      if (seedCounts[seed]!==undefined) seedCounts[seed]++;
+      else seedCounts[seed] = (seedCounts[seed]||0)+1;
+    }
+    
+    const colors = {12:'#2d8a4a',13:'#2d6a8a',14:'#2d4a8a',15:'#8a6a2d',16:'#8a2d2d'};
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-weight:600">${outcomeLabels[oi]}</td>
+      <td class="record">${cW}-${cL}</td>
+      ${[12,13,14,15,16].map(s=>{
+        const cnt = seedCounts[s]||0;
+        const p = cnt/N*100;
+        const bg = p>0?colors[s]+'33':'transparent';
+        return `<td style="background:${bg};font-family:'JetBrains Mono';font-size:12px;color:${p>0?'#ddd':'var(--muted)'}">${p>0?p.toFixed(1)+'%':'—'}</td>`;
+      }).join('')}
+    `;
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+  div.appendChild(table);
+}
+
+// ============================================================
+// BRACKET
+// ============================================================
+function updateBracket(seedings, wins) {
+  const s = (n) => seedings[n-1];
+  const rec = (t) => {
+    if (!wins) return '';
+    const w = wins[t], l = (w <= 27) ? 27 - (w - BASE_RECORDS[t].w) : 0; // rough
+    return '';
+  };
+
+  // Build bracket HTML
+  const bracketEl = document.getElementById('bracket-display');
+  
+  // Tuesday games: 9v16, 12v13, 15v10, 11v14
+  const tue = [
+    [s(9),s(16),'9pm'],
+    [s(12),s(13),'1pm'],
+    [s(15),s(10),'5pm'],
+    [s(11),s(14),'9pm'],
+  ];
+  
+  // Wednesday games
+  const wed = [
+    [null,null,s(8),'9am','Tue 1 winner'],
+    [null,null,s(5),'1pm','Tue 2 winner'],
+    [null,null,s(7),'5pm','Tue 3 winner'],
+    [null,null,s(6),'9pm','Tue 4 winner'],
+  ];
+  
+  let html = `<div style="display:flex;gap:0;min-width:800px;">`;
+  
+  // Tuesday column
+  html += `<div style="width:180px;flex-shrink:0">
+    <div class="bracket-round-header" style="background:#2a1a1a;border-bottom-color:var(--red)">Tuesday<br><span style="font-size:10px;font-weight:400">First Round</span></div>
+    <div style="display:flex;flex-direction:column;gap:8px;padding:4px;">`;
+  for (const [t1,t2,time] of tue) {
+    html += `<div class="bracket-game">
+      <div class="bracket-team"><span class="bracket-seed-sm">${seedings.indexOf(t1)+1}</span>${t1}</div>
+      <div class="bracket-team"><span class="bracket-seed-sm">${seedings.indexOf(t2)+1}</span>${t2}</div>
+    </div>`;
+  }
+  html += `</div></div>`;
+  
+  // Wednesday column
+  html += `<div style="width:200px;flex-shrink:0">
+    <div class="bracket-round-header" style="background:#1a2a1a;border-bottom-color:var(--green)">Wednesday<br><span style="font-size:10px;font-weight:400">Quarterfinals</span></div>
+    <div style="display:flex;flex-direction:column;gap:8px;padding:4px;">`;
+  const wedMatchups = [
+    [`Tue G1 winner`,s(8)],
+    [`Tue G2 winner`,s(5)],
+    [`Tue G3 winner`,s(7)],
+    [`Tue G4 winner`,s(6)],
+  ];
+  for (const [t1,t2] of wedMatchups) {
+    const s2seed = seedings.indexOf(t2)+1;
+    html += `<div class="bracket-game">
+      <div class="bracket-team tbd"><span class="bracket-seed-sm">?</span>${t1}</div>
+      <div class="bracket-team"><span class="bracket-seed-sm">${s2seed}</span>${t2}</div>
+    </div>`;
+  }
+  html += `</div></div>`;
+  
+  // Thursday column
+  html += `<div style="width:210px;flex-shrink:0">
+    <div class="bracket-round-header" style="background:#1a1a2a;border-bottom-color:var(--gold)">Thu/Fri<br><span style="font-size:10px;font-weight:400">Semifinals Round 1</span></div>
+    <div style="display:flex;flex-direction:column;gap:8px;padding:4px;padding-top:40px;">`;
+  const thurMatchups = [
+    [`Wed winner`,s(1),'Thu 3pm'],
+    [`Wed winner`,s(4),'Thu 7pm'],
+    [`Wed winner`,s(2),'Fri 3pm'],
+    [`Wed winner`,s(3),'Fri 7pm'],
+  ];
+  for (const [t1,t2,time] of thurMatchups) {
+    const s2seed = seedings.indexOf(t2)+1;
+    html += `<div class="bracket-game" style="margin-bottom:8px">
+      <div class="bracket-team tbd"><span class="bracket-seed-sm">?</span>${t1}</div>
+      <div class="bracket-team" style="font-weight:700"><span class="bracket-seed-sm" style="color:var(--gold)">${s2seed}</span>${t2} <span style="font-size:10px;color:var(--gold);margin-left:4px">●</span></div>
+      <div style="font-size:10px;color:var(--muted);padding:3px 10px;border-top:1px solid var(--border)">${time}</div>
+    </div>`;
+  }
+  html += `</div></div>`;
+  
+  // Semis / Championship
+  html += `<div style="flex:1">
+    <div class="bracket-round-header">Sat–Sun<br><span style="font-size:10px;font-weight:400">Semis & Championship</span></div>
+    <div style="display:flex;flex-direction:column;gap:8px;padding:4px;padding-top:80px;">
+      <div class="bracket-game" style="margin-bottom:8px">
+        <div class="bracket-team tbd"><span class="bracket-seed-sm">?</span>Sat Semifinal 1 (1pm)</div>
+        <div class="bracket-team tbd"><span class="bracket-seed-sm">?</span>TBD</div>
+      </div>
+      <div class="bracket-game" style="margin-bottom:8px">
+        <div class="bracket-team tbd"><span class="bracket-seed-sm">?</span>Sat Semifinal 2 (5pm)</div>
+        <div class="bracket-team tbd"><span class="bracket-seed-sm">?</span>TBD</div>
+      </div>
+      <div class="bracket-game" style="border:2px solid var(--gold)">
+        <div class="bracket-team" style="background:rgba(240,165,0,0.1)"><span class="bracket-seed-sm" style="color:var(--gold)">🏆</span>Sun Championship (Noon)</div>
+        <div class="bracket-team tbd"><span class="bracket-seed-sm">?</span>vs TBD</div>
+      </div>
+    </div>
+  </div>`;
+  
+  html += `</div>`;
+  bracketEl.innerHTML = html;
+  
+  // Schedule table
+  renderScheduleTable(seedings);
+}
+
+function renderScheduleTable(seedings) {
+  const tbody = document.getElementById('schedule-tbody');
+  tbody.innerHTML = '';
+  const s = (n) => seedings[n-1];
+  
+  const sched = [
+    ['Tuesday','9:00 AM',`(${seedings.indexOf(s(9))+1}) ${s(9)} vs (${seedings.indexOf(s(16))+1}) ${s(16)}`,'First Round'],
+    ['Tuesday','1:00 PM',`(${seedings.indexOf(s(12))+1}) ${s(12)} vs (${seedings.indexOf(s(13))+1}) ${s(13)}`,'First Round'],
+    ['Tuesday','5:00 PM',`(${seedings.indexOf(s(15))+1}) ${s(15)} vs (${seedings.indexOf(s(10))+1}) ${s(10)}`,'First Round'],
+    ['Tuesday','9:00 PM',`(${seedings.indexOf(s(11))+1}) ${s(11)} vs (${seedings.indexOf(s(14))+1}) ${s(14)}`,'First Round'],
+    ['Wednesday','9:00 AM',`Tue G1 winner vs (${seedings.indexOf(s(8))+1}) ${s(8)}`,'Quarterfinal'],
+    ['Wednesday','1:00 PM',`Tue G2 winner vs (${seedings.indexOf(s(5))+1}) ${s(5)}`,'Quarterfinal'],
+    ['Wednesday','5:00 PM',`Tue G3 winner vs (${seedings.indexOf(s(7))+1}) ${s(7)}`,'Quarterfinal'],
+    ['Wednesday','9:00 PM',`Tue G4 winner vs (${seedings.indexOf(s(6))+1}) ${s(6)}`,'Quarterfinal'],
+    ['Thursday','3:00 PM',`Wed G1 winner vs (1) ${s(1)}`,'Bye teams enter • Double bye'],
+    ['Thursday','7:00 PM',`Wed G2 winner vs (4) ${s(4)}`,'Bye teams enter • Double bye'],
+    ['Friday','3:00 PM',`Wed G3 winner vs (2) ${s(2)}`,'Double bye'],
+    ['Friday','7:00 PM',`Wed G4 winner vs (3) ${s(3)}`,'Double bye'],
+    ['Saturday','1:00 PM','Semifinal 1','Thu winners bracket'],
+    ['Saturday','5:00 PM','Semifinal 2','Fri winners bracket'],
+    ['Sunday','Noon','Championship','ACC Title Game'],
+  ];
+  
+  let lastDay = '';
+  for (const [day,time,matchup,note] of sched) {
+    const tr = document.createElement('tr');
+    const dayChanged = day!==lastDay;
+    if (dayChanged) lastDay=day;
+    tr.innerHTML = `
+      <td style="font-weight:700;color:var(--orange)">${dayChanged?day:''}</td>
+      <td class="record" style="font-size:12px">${time}</td>
+      <td style="font-weight:600">${matchup}</td>
+      <td style="font-size:12px;color:var(--muted)">${note}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  document.querySelector(`.nav-tab[onclick="showSection('${name}')"]`).classList.add('active');
+  
+  if (name==='bracket' && currentSeedings) {
+    // bracket already updated
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  renderOverview();
+  renderSeriesSelector();
+  renderClemsonSection();
+  updateScenario();
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
